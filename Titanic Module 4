@@ -1,0 +1,41 @@
+titanic <- read_csv("Desktop/titanic.csv")
+View(titanic)
+summary(titanic)
+
+# convert characters into factors 
+titanic$class = as.factor(titanic$class)
+titanic$age = as.factor(titanic$age)
+titanic$sex = as.factor(titanic$sex)
+titanic$survived = as.factor(titanic$survived)
+
+install.packages("arules")
+library(arules)
+# exclude column 1 and rename data as td 
+td = titanic[,2:5]
+
+# what is the support level? 
+# what fraction should support this rule 
+rules = apriori(td, parameter = list(support = .1, conf = 0.5, minlen = 2))
+
+rules = sort(rules, by="lift")
+inspect(rules)
+
+# set rhs for rules ("Survived = no", "Survived = Yes") 
+# rules with rhs containing "Survived" only
+rules <- apriori(td, parameter = list(minlen=2, supp=0.005, conf=0.8), appearance = list(rhs=c("survived=no", "survived=yes"), default="lhs"), control = list(verbose=F))
+rules.sorted <- sort(rules, by = "lift")
+
+# prune redundancy and find the redundant rules
+subset.matrix <- is.subset(rules.sorted, rules.sorted, sparse = FALSE)
+subset.matrix[lower.tri(subset.matrix, diag = T)] <- NA
+redundant <- colSums(subset.matrix, na.rm = T) >= 1
+which(redundant)
+
+# rules 2, 3, 5, 7 are redudant, remove the redundancy
+rules.pruned <- rules.sorted[!redundant]
+inspect(rules.pruned)
+
+#visualize the association rules
+plot(rules.pruned, method = "scatterplot")
+plot(rules.pruned, method = "graph", control=list(type = "items"))
+
