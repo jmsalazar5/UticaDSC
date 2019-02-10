@@ -1,0 +1,85 @@
+#load required R packages (need to be installed first)
+install.packages("sp") 
+install.packages("rgdal") 
+install.packages("ggplot2") 
+install.packages("mapproj")
+install.packages("plyr")
+install.packages("tigris")
+
+library(sp) 
+library(rgdal) 
+library(ggplot2) 
+library(mapproj)
+library(plyr)
+library(tigris)
+
+#load data
+#census tracts geometries
+#attributes from census
+geom <- readOGR("Documents/cb_2016_36_tract_500k_NYC.shp")  
+attr <- read.csv("Documents/ACS_16_5YR_S0701_with_ann_AH_v2.csv", header = TRUE, fill = TRUE)
+
+#join attribute data to geometries
+#create an identifier for each census block (running number)
+#create fortify object 
+#join geometries to fortify object
+#merge census attributes with fortify object
+geom@data$id <- rownames(geom@data)   
+geoforti <- ggplot2::fortify(geom)             
+geoforti <- join(geoforti, geom@data, by="id") 
+geoforti <- merge(geoforti, attr, by.x="GEOID", by.y="GEO.id2", all.x=T, a..ly=F) 
+
+
+# create the map layers
+ggp <- ggplot(data=geoforti, aes(x=long, y=lat, group=group))
+ggp <- ggp + geom_polygon(aes(fill=as.numeric(HC01_EST_VC06)))
+ggp <- ggp + geom_path(color = "red", linetype=2)
+ggp <- ggp + coord_equal()
+ggp <- ggp + scale_fill_gradient(low = "#ffffcc", high = "#ff4444", space = "Lab", na.value = "grey50", guide = "colourbar")
+ggp <- ggp + labs(title= "New York")
+print(ggp)
+
+# HC01_EST_VC16 Total; Estimate; SEX - Male
+ggp <- ggplot(data=geoforti, aes(x=long, y=lat, group=group))
+ggp <- ggp + geom_polygon(aes(fill=as.numeric(HC01_EST_VC16)))
+ggp <- ggp + geom_path(color = "red", linetype=2)
+ggp <- ggp + coord_equal()
+ggp <- ggp + scale_fill_gradient(low = "#ffffcc", high = "#ff4444", space = "Lab", na.value = "grey50", guide = "colourbar")
+ggp <- ggp + labs(title= "New York Male Population")
+print(ggp)
+
+# HC01_EST_VC17	Total; Estimate; SEX - Female
+ggp <- ggplot(data=geoforti, aes(x=long, y=lat, group=group))
+ggp <- ggp + geom_polygon(aes(fill=as.numeric(HC01_EST_VC17)))
+ggp <- ggp + geom_path(color = "red", linetype=2)
+ggp <- ggp + coord_equal()
+ggp <- ggp + scale_fill_gradient(low = "#ffffcc", high = "#ff4444", space = "Lab", na.value = "grey50", guide = "colourbar")
+ggp <- ggp + labs(title= "New York Female Population")
+print(ggp)
+
+#median income HC01_EST_VC64
+ggp <- ggplot(data=geoforti, aes(x=long, y=lat, group=group))
+ggp <- ggp + geom_polygon(aes(fill=as.numeric(HC01_EST_VC64)))
+ggp <- ggp + geom_path(color = "red", linetype=2)
+ggp <- ggp + coord_equal()
+ggp <- ggp + scale_fill_gradient(low = "#ffffcc", high = "#ff4444", space = "Lab", na.value = "grey50", guide = "colourbar")
+ggp <- ggp + labs(title= "New York Median Income")
+print(ggp)
+
+#HC01_EST_VC50 Total Estimate; EDUCATIONAL ATTAINMENT - Population 25 years and over - Bachelor's 25 Year's and Older
+ggp <- ggplot(data=geoforti, aes(x=long, y=lat, group=group))
+ggp <- ggp + geom_polygon(aes(fill=as.numeric(HC01_EST_VC50)))
+ggp <- ggp + geom_path(color = "red", linetype=2)
+ggp <- ggp + coord_equal()
+ggp <- ggp + scale_fill_gradient(low = "#ffffcc", high = "#ff4444", space = "Lab", na.value = "grey50", guide = "colourbar")
+ggp <- ggp + labs(title= "New York Bachelor's Degree 25 Yrs+")
+print(ggp)
+
+# HC01_EST_VC51	Total; Estimate; EDUCATIONAL ATTAINMENT - Population 25 years and over - Graduate or professional degree
+ggp <- ggplot(data=geoforti, aes(x=long, y=lat, group=group))
+ggp <- ggp + geom_polygon(aes(fill=as.numeric(HC01_EST_VC51)))
+ggp <- ggp + geom_path(color = "red", linetype=2)
+ggp <- ggp + coord_equal()
+ggp <- ggp + scale_fill_gradient(low = "#ffffcc", high = "#ff4444", space = "Lab", na.value = "grey50", guide = "colourbar")
+ggp <- ggp + labs(title= "New York Graduate Degrees 25 Yrs+")
+print(ggp)
